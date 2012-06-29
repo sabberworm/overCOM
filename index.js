@@ -3,13 +3,18 @@ var sax = require('sax');
 
 var objectIndex = 0;
 
-function queryPS(comType, query, charset, callback) {
-	var command = '((new-object -com '+comType+').'+query+' | ConvertTo-XML).InnerXml';
-	exec('PowerShell.exe -NoProfile -NonInteractive -NoLogo -Command "'+command+'"', {encoding: charset}, function(error, stdout, stderr) {
-		if(error || stderr) {
-			console.log('Error:', error, stderr);
+function queryPS(comType, query, callback) {
+	var command = '[console]::OutputEncoding = New-Object -typename System.Text.UTF8Encoding; ((new-object -com '+comType+').'+query+' | ConvertTo-XML).InnerXml';
+	//command = new Buffer(command);
+	//command = command.toString('base64');
+	//exec('PowerShell.exe -NoProfile -NonInteractive -NoLogo -EncodedCommand "'+command+'"', {encoding: 'utf8'}, function(error, stdout, stderr) {
+	exec('PowerShell.exe -NoProfile -NonInteractive -NoLogo -Command "'+command+'"', {encoding: 'utf8'}, function(error, stdout, stderr) {
+		if(error) {
+			return callback(error);
+		} else if(stderr) {
+			return callback(new Error(stderr));
 		}
-		callback(stdout.replace(/(\r\n)+/g, ''));
+		callback(null, stdout.replace(/^[^<]+/, '').replace(/(\r\n)+/g, ''));
 	}).stdin.end();
 }
 
@@ -142,15 +147,12 @@ COMObject.prototype.queryMethod = function(methodName) {
 };
 
 COMObject.prototype.queryText = function(query, callback) {
-	queryPS(this.session.comType, this.fullPath()+query, this.session.charset, function(text) {
-		callback(text);
-	});
+	queryPS(this.session.comType, this.fullPath()+query, callback);
 };
 
-function COMSession(comType, charset) {
+function COMSession(comType) {
 	var _this = this;
 	this.comType = comType;
-	this.charset = charset || 'utf8';
 	COMObject.call(this, this);
 	this.callbackStack = [];
 }
