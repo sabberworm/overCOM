@@ -7,6 +7,7 @@
     "url": "git://github.com/sabberworm/overCOM.git"
   },
   "main": "index.js",
+  "keywords": ["COM", "Windows", "PowerShell"],
   "dependencies": {},
   "devDependencies": {},
   "optionalDependencies": {},
