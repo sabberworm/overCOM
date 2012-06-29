@@ -127,7 +127,7 @@ COMObject.prototype.queryMethod = function(methodName) {
 		if(value === null || value === undefined) {
 			value = 'nil';
 		} else if(value.constructor === String) {
-			value = "'"+value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")+"'";
+			value = "'"+value.replace(/'/g, '"')+"'";
 		} else if(value.constructor === Boolean) {
 			value = value ? '$True' : '$False';
 		} else {
