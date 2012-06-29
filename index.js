@@ -59,6 +59,7 @@ COMObject.prototype.parseResult = function(text, query, callback) {
 	var currentNode = null;
 	var properties = {};
 	var subObjects = [];
+	var error = null;
 	var type = null;
 	parser.onopentag = function(node) {
 		node.text = '';
@@ -70,7 +71,8 @@ COMObject.prototype.parseResult = function(text, query, callback) {
 			type = currentNode.attributes.Type;
 		} else if(currentNode.name === 'Property') {
 			if(!currentNode.attributes.Type) {
-				console.log(currentNode.attributes);
+				error = new Error('Property '+currentNode.attributes.Name+' does not have a type');
+				return;
 			}
 			var propertyType = currentNode.attributes.Type.replace(/^System\./, '');
 			var name = currentNode.attributes.Name;
@@ -93,7 +95,7 @@ COMObject.prototype.parseResult = function(text, query, callback) {
 				} else if(propertyType.indexOf('Int') === 0) {
 					value = parseInt(value, 10);
 				} else {
-					console.log('Error: Unknown attribute type', propertyType);
+					error = new Error('Unknown attribute type '+propertyType);
 				}
 				properties[name] = value;
 			}
@@ -105,11 +107,12 @@ COMObject.prototype.parseResult = function(text, query, callback) {
 			currentNode.text += text;
 		}
 	};
-	parser.onerror = function(error) {
+	parser.onerror = function(e) {
+		error = e;
 	};
 	parser.onend = function() {
-		var result = new COMObject(_this.session, query, _this, type, properties, subObjects);
-		callback(result);
+		var result = error ? null : new COMObject(_this.session, query, _this, type, properties, subObjects);
+		callback(error, result);
 	};
 	parser.write(text).end();
 };
@@ -117,7 +120,10 @@ COMObject.prototype.parseResult = function(text, query, callback) {
 
 COMObject.prototype.query = function(query, callback) {
 	var _this = this;
-	this.queryText(query, function(text) {
+	this.queryText(query, function(error, text) {
+		if(error) {
+			return callback(error);
+		}
 		//Parse object
 		_this.parseResult(text, query, callback);
 	});
