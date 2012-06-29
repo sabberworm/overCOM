@@ -128,12 +128,14 @@ COMObject.prototype.queryMethod = function(methodName) {
 			value = 'nil';
 		} else if(value.constructor === String) {
 			value = "'"+value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")+"'";
+		} else if(value.constructor === Boolean) {
+			value = value ? '$True' : '$False';
 		} else {
 			value = ''+value;
 		}
 		args[i] = value;
 	}
-	args = args.join(',');
+	args = args.join(', ');
 	var callback = arguments[arguments.length-1];
 	methodName+='('+args+')';
 	this.query(methodName, callback);
