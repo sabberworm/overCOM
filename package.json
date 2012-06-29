@@ -8,7 +8,9 @@
   },
   "main": "index.js",
   "keywords": ["COM", "Windows", "PowerShell"],
-  "dependencies": {},
+  "dependencies": {
+    "sax": "~ 0.4"
+  },
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
