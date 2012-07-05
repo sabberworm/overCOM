@@ -5,17 +5,16 @@ var sax = require('sax');
 var objectIndex = 0;
 
 function queryPS(comType, query, callback) {
-	var command = '[console]::OutputEncoding = New-Object -typename System.Text.UTF8Encoding; ((new-object -com '+comType+').'+query+' | ConvertTo-XML).InnerXml';
-	//command = new Buffer(command);
-	//command = command.toString('base64');
-	//exec('PowerShell.exe -NoProfile -NonInteractive -NoLogo -EncodedCommand "'+command+'"', {encoding: 'utf8'}, function(error, stdout, stderr) {
-	exec('PowerShell.exe -NoProfile -NonInteractive -NoLogo -Command "'+command+'"', {encoding: 'utf8'}, function(error, stdout, stderr) {
+	var command = '[console]::OutputEncoding = New-Object -typename System.Text.UTF8Encoding; ((new-object -com '+comType+').'+query+' | ConvertTo-XML).InnerXml -replace "`n","`0"';
+	command = new Buffer(command, 'ucs2');
+	command = command.toString('base64');
+	exec('PowerShell.exe -NoProfile -NonInteractive -NoLogo -EncodedCommand "'+command+'"', {encoding: 'utf8'}, function(error, stdout, stderr) {
 		if(error) {
 			return callback(error);
 		} else if(stderr) {
 			return callback(new Error(stderr));
 		}
-		callback(null, stdout.replace(/^[^<]+/, '').replace(/(\r\n)+/g, ''));
+		callback(null, stdout.replace(/^[^<]+/, '').replace(/(\r\n)+/g, '').replace(/\0/g, "\n"));
 	}).stdin.end();
 }
 
