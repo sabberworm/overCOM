@@ -180,10 +180,12 @@ COMObject.prototype.update = function() {
 	var _this = this;
 	this.queryText(null, function(error, text) {
 		if(error) {
+			_this.emit('error', error);
 			return;
 		}
 		parseObject(text, function(error, obj) {
 			if(error) {
+				_this.emit('error', error);
 				return;
 			}
 			var updatedProperties = [];
